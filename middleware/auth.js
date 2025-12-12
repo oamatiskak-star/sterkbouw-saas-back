@@ -1,0 +1,1 @@
+export function checkAuth(req, res, next){ console.log("Auth check"); next(); }

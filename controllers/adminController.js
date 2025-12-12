@@ -1,0 +1,1 @@
+export const checkStatus = (req,res)=>res.json({ok:true})
