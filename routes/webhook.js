@@ -1,22 +1,36 @@
+import * as dotenv from 'dotenv'
+dotenv.config()
+
+import axios from 'axios'
 import express from 'express'
-import { sendTelegram } from '../telegram/telegram.js'
+import { sendTelegram } from './telegram/telegram.js'
+import webhookRouter from './routes/webhook.js'
 
-const router = express.Router()
+const backendUrl = process.env.BACKEND_URL
 
-router.post('/webhook', async (req, res) => {
+async function pingBackend() {
   try {
-    const payload = req.body
-    console.log('[AO] Webhook ontvangen:', payload)
-
-    // Verstuur naar Telegram
-    await sendTelegram(`[AO] Webhook ontvangen van Vercel:\n${JSON.stringify(payload, null, 2)}`)
-
-    res.status(200).send('Webhook ontvangen')
-  } catch (err) {
-    console.error('[AO] Webhook fout:', err.message)
-    await sendTelegram(`[AO] Webhook FOUT: ${err.message}`)
-    res.status(500).send('Fout bij verwerken webhook')
+    const response = await axios.get(`${backendUrl}/ping`)
+    const msg = `[AO] Backend reageert: ${response.status} - ${response.statusText}`
+    console.log(msg)
+    await sendTelegram(msg)
+  } catch (error) {
+    const errMsg = `[AO] FOUT bij ping backend: ${error.message}`
+    console.error(errMsg)
+    await sendTelegram(errMsg)
   }
-})
+}
 
-export default router
+console.log('[AO] Agent gestart')
+await sendTelegram('[AO] Agent gestart en probeert backend te pingen...')
+await pingBackend()
+
+// Webhook server
+const app = express()
+app.use(express.json())
+app.use('/api', webhookRouter)
+
+const PORT = process.env.PORT || 10000
+app.listen(PORT, () => {
+  console.log(`[AO] Webhook actief op poort ${PORT}`)
+})
