@@ -1,61 +1,38 @@
 import express from "express"
+import { createClient } from "@supabase/supabase-js"
 
 const router = express.Router()
 
-router.get("/", (req, res) => {
-  res.json({
-    ok: true,
-    modules: [
-      {
-        key: "calculaties",
-        label: "Calculaties",
-        path: "/calculator",
-        description: "STABU en Fixed Price calculaties"
-      },
-      {
-        key: "projecten",
-        label: "Projecten",
-        path: "/projecten",
-        description: "Projectbeheer en voortgang"
-      },
-      {
-        key: "bim",
-        label: "BIM Architectuur",
-        path: "/bim",
-        description: "BIM modellen en uploads"
-      },
-      {
-        key: "risico",
-        label: "Risico Analyse",
-        path: "/risico",
-        description: "Risico en haalbaarheid"
-      },
-      {
-        key: "constructeurs",
-        label: "Constructeurs",
-        path: "/constructeurs",
-        description: "Constructieve berekeningen"
-      },
-      {
-        key: "kopersportaal",
-        label: "Kopersportaal",
-        path: "/kopersportaal",
-        description: "Kopers en huurders"
-      },
-      {
-        key: "team",
-        label: "Teambeheer",
-        path: "/team",
-        description: "Gebruikers en rollen"
-      },
-      {
-        key: "notificaties",
-        label: "Notificaties",
-        path: "/notificaties",
-        description: "Systeemmeldingen"
-      }
-    ]
-  })
+const supabase = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+)
+
+router.get("/", async (req, res) => {
+  try {
+    const { data: modules, error } = await supabase
+      .from("modules")
+      .select("key, label, route, active")
+      .eq("active", true)
+      .order("sort_order", { ascending: true })
+
+    if (error) throw error
+
+    res.json({
+      ok: true,
+      modules: modules.map(m => ({
+        key: m.key,
+        label: m.label,
+        path: m.route
+      }))
+    })
+  } catch (err) {
+    console.error("MODULES API ERROR", err)
+    res.status(500).json({
+      ok: false,
+      error: "Modules laden mislukt"
+    })
+  }
 })
 
 export default router
