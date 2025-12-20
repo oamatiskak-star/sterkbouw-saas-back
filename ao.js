@@ -9,6 +9,12 @@ import { createClient } from "@supabase/supabase-js"
 import { sendTelegram } from "./telegram/telegram.js"
 
 // ===============================
+// PDF ROUTES (NIEUW)
+// ===============================
+
+import pdfRoutes from "./routes/pdfRoutes.js"
+
+// ===============================
 // BASIS
 // ===============================
 
@@ -93,6 +99,12 @@ app.get("/api/ui/:page_slug", async (req, res) => {
     ]
   })
 })
+
+// ===============================
+// PDF API (NIEUW – LAAG 2)
+// ===============================
+
+app.use(pdfRoutes)
 
 // ===============================
 // BESTAANDE EXECUTOR LOGICA
