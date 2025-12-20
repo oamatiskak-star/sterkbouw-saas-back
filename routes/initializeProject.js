@@ -1,7 +1,9 @@
 import express from "express"
 import { createClient } from "@supabase/supabase-js"
+import fetch from "node-fetch"
 
 const router = express.Router()
+
 const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -26,7 +28,7 @@ router.post("/initialize-project", async (req, res) => {
     body: JSON.stringify({ project_id, options })
   })
 
-  res.json({ status: "started" })
+  res.json({ ok: true })
 })
 
 export default router
