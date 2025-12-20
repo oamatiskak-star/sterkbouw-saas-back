@@ -4,7 +4,16 @@ import cors from "cors"
 import morgan from "morgan"
 import { logEvent } from "./utils/log.js"
 
+// ===============================
+// ROUTES
+// ===============================
+
 import apiRouter from "./api/routes/index.js"
+import pdfRoutes from "./routes/pdfRoutes.js"
+
+// ===============================
+// INIT
+// ===============================
 
 dotenv.config()
 
@@ -14,12 +23,30 @@ app.use(cors())
 app.use(express.json())
 app.use(morgan("dev"))
 
+// ===============================
+// PING
+// ===============================
+
 app.get("/ping", (req, res) => {
   logEvent("Ping ontvangen")
   res.json({ status: "ok", timestamp: Date.now() })
 })
 
+// ===============================
+// API ROUTES
+// ===============================
+
 app.use("/api", apiRouter)
+
+// ===============================
+// PDF ROUTES (LAAG 2 – NIEUW)
+// ===============================
+
+app.use(pdfRoutes)
+
+// ===============================
+// START SERVER
+// ===============================
 
 const PORT = process.env.PORT || 4000
 app.listen(PORT, () => {
