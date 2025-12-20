@@ -1,0 +1,25 @@
+{
+  "page": {
+    "size": "A4",
+    "margin": 36
+  },
+  "fonts": {
+    "base": "Inter"
+  },
+  "colors": {
+    "primary": "#111827",
+    "secondary": "#6b7280",
+    "accent": "#2563eb",
+    "border": "#e5e7eb"
+  },
+  "sections": [
+    "cover",
+    "project_overview",
+    "scope",
+    "assumptions",
+    "risks",
+    "calculation_structure",
+    "planning",
+    "footer"
+  ]
+}
