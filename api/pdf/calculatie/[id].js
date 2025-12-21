@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js"
+import { createClient } from "@supabase/supabase-js" 
 import PDFDocument from "pdfkit"
 
 const supabase = createClient(
