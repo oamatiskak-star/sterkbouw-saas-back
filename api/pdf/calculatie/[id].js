@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js" 
+import { createClient } from "@supabase/supabase-js"
 import PDFDocument from "pdfkit"
 
 const supabase = createClient(
@@ -7,18 +7,19 @@ const supabase = createClient(
 )
 
 export default async function handler(req, res) {
-  const {
-    query: { id }
-  } = req
+  const { id } = req.query
 
   if (!id) {
     res.status(400).send("Geen calculatie ID")
     return
   }
 
+  console.log("PDF API aangeroepen voor calculatie:", id)
+
   const { data: calculatie, error } = await supabase
     .from("calculaties")
-    .select(`
+    .select(
+      `
       naam_opdrachtgever,
       omschrijving,
       adres,
@@ -28,11 +29,13 @@ export default async function handler(req, res) {
       telefoon,
       project_type,
       opmerking
-    `)
+    `
+    )
     .eq("id", id)
     .single()
 
   if (error || !calculatie) {
+    console.error("Calculatie niet gevonden:", error)
     res.status(404).send("Calculatie niet gevonden")
     return
   }
