@@ -1,26 +1,25 @@
 const handleStartCalculatie = async () => {
-  const calculatieId = currentCalculatieId; // haal dynamisch je calculatie-ID op, bijvoorbeeld uit props of router query
+  if (!currentCalculatieId) return
+
   try {
-    // Status: bezig
-    setLoading(true);
+    setLoading(true)
 
-    // Fetch PDF van backend
-    const res = await fetch(`/api/pdf/calculatie/${calculatieId}`);
-    if (!res.ok) throw new Error("Fout bij genereren PDF");
+    const res = await fetch(`/api/pdf/calculatie/${currentCalculatieId}`)
+    if (!res.ok) throw new Error("Fout bij genereren PDF")
 
-    // Blob omzetten naar download
-    const blob = await res.blob();
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `calculatie_${calculatieId}.pdf`;
-    a.click();
-    window.URL.revokeObjectURL(url);
+    const blob = await res.blob()
+    const url = window.URL.createObjectURL(blob)
 
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `calculatie_${currentCalculatieId}.pdf`
+    a.click()
+
+    window.URL.revokeObjectURL(url)
   } catch (err) {
-    console.error("Fout bij PDF-generatie:", err);
-    alert("Er is een fout opgetreden bij het genereren van de calculatie.");
+    console.error("Fout bij PDF-generatie:", err)
+    alert("PDF genereren mislukt")
   } finally {
-    setLoading(false);
+    setLoading(false)
   }
-};
+}
