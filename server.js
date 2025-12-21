@@ -9,7 +9,7 @@ import { logEvent } from "./utils/log.js"
 // ===============================
 
 import apiRouter from "./api/routes/index.js"
-import pdfRoutes from "./api/routes/pdf.js" // correct pad naar PDF router
+import pdfRoutes from "./api/routes/pdf.js" // PDF router
 
 // ===============================
 // INIT
@@ -39,7 +39,7 @@ app.get("/ping", (req, res) => {
 app.use("/api", apiRouter)
 
 // ===============================
-// PDF ROUTES (LAAG 2 – NIEUW)
+// PDF ROUTES (LAAG 2 – 2Jours LAYOUT)
 // ===============================
 
 app.use("/api/pdf", pdfRoutes) // base path voor PDF endpoints
