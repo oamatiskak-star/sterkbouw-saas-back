@@ -1,0 +1,44 @@
+name: Hourly Backend Backup
+
+on:
+  schedule:
+    - cron: "0 * * * *"
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout backend repo
+        uses: actions/checkout@v4
+
+      - name: Set timestamp
+        run: |
+          echo "TS=$(date -u +'%Y-%m-%d-%H')" >> $GITHUB_ENV
+
+      - name: Prepare backup folder
+        run: |
+          mkdir -p backup/back
+          git archive --format=tar.gz -o backup/back/back_${TS}.tar.gz HEAD
+
+      - name: Checkout backup repository
+        uses: actions/checkout@v4
+        with:
+          repository: oamatiskak-star/sterkcalc-backups
+          path: backups
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Copy backend backup
+        run: |
+          mkdir -p backups/github/back
+          cp backup/back/back_${TS}.tar.gz backups/github/back/
+
+      - name: Commit and push backup
+        run: |
+          cd backups
+          git config user.name "SterkCalc Backup Bot"
+          git config user.email "backup@sterkcalc"
+          git add .
+          git commit -m "backend backup ${TS}" || echo "no changes"
+          git push
