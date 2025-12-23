@@ -29,7 +29,7 @@ router.get("/", async (_req, res) => {
 /*
 ========================
 POST /projecten
-MAAKT HET ENIGE GELDIGE PROJECT AAN
+ENIGE GELDIGE MANIER OM PROJECT AAN TE MAKEN
 ========================
 */
 router.post("/", async (req, res) => {
@@ -49,17 +49,18 @@ router.post("/", async (req, res) => {
     const { data, error } = await supabase
       .from("projects")
       .insert({
-        naam,
-        naam_opdrachtgever,
-        adres,
-        postcode,
-        plaatsnaam,
-        land,
-        telefoon,
-        project_type,
-        opmerking,
+        naam: naam || null,
+        naam_opdrachtgever: naam_opdrachtgever || null,
+        adres: adres || null,
+        postcode: postcode || null,
+        plaatsnaam: plaatsnaam || null,
+        land: land || "Nederland",
+        telefoon: telefoon || null,
+        project_type: project_type || null,
+        opmerking: opmerking || null,
         files_uploaded: false,
-        analysis_status: null
+        analysis_status: null,
+        created_at: new Date().toISOString()
       })
       .select("id")
       .single()
