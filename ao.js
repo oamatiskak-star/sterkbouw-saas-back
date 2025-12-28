@@ -9,10 +9,18 @@ import { createClient } from "@supabase/supabase-js"
 import { sendTelegram } from "./telegram/telegram.js"
 
 // ===============================
-// PDF ROUTES (NIEUW)
+// PDF ROUTES
 // ===============================
 
 import pdfRoutes from "./routes/pdfRoutes.js"
+
+// ===============================
+// CALCULATIE API ROUTES
+// ===============================
+
+import projectenRouter from "./api/projecten.js"
+import generateCalculatieRouter from "./api/generate-calculatie.js"
+import uploadTaskRouter from "./api/executor/upload-task.js"
 
 // ===============================
 // BASIS
@@ -101,10 +109,33 @@ app.get("/api/ui/:page_slug", async (req, res) => {
 })
 
 // ===============================
-// PDF API (NIEUW – LAAG 2)
+// PDF API
 // ===============================
 
 app.use(pdfRoutes)
+
+// ===============================
+// CALCULATIE API
+// ===============================
+
+app.use("/api/projecten", projectenRouter)
+app.use("/api/generate-calculatie", generateCalculatieRouter)
+app.use("/api/executor/upload-task", uploadTaskRouter)
+
+// Health check voor calculatie API
+app.get("/api/calculatie/health", (req, res) => {
+  res.json({ 
+    status: "ok", 
+    service: "calculatie-api",
+    timestamp: new Date().toISOString(),
+    version: "1.0.0",
+    endpoints: {
+      projecten: "/api/projecten",
+      generate_calculatie: "/api/generate-calculatie",
+      upload: "/api/executor/upload-task"
+    }
+  })
+})
 
 // ===============================
 // BESTAANDE EXECUTOR LOGICA
@@ -124,9 +155,25 @@ async function pingBackend() {
   }
 }
 
-console.log("[AO] Executor + API gestart")
-await sendTelegram("[AO] Executor + API gestart")
+console.log("[AO] Executor + API + Calculatie gestart")
+await sendTelegram("[AO] Executor + API + Calculatie gestart")
 await pingBackend()
+
+// ===============================
+// ERROR HANDLING
+// ===============================
+
+app.use((err, req, res, next) => {
+  console.error("[AO] Server error:", err)
+  res.status(500).json({
+    ok: false,
+    error: process.env.NODE_ENV === "development" ? err.message : "Internal server error"
+  })
+})
+
+app.use("*", (req, res) => {
+  res.status(404).json({ ok: false, error: "Endpoint not found" })
+})
 
 // ===============================
 // START SERVER
@@ -134,4 +181,5 @@ await pingBackend()
 
 app.listen(PORT, () => {
   console.log(`[AO] Service draait op poort ${PORT}`)
+  console.log(`[CALC] Calculatie API beschikbaar op http://localhost:${PORT}/api/calculatie/health`)
 })
