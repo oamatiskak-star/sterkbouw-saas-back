@@ -1,4 +1,4 @@
-# backend/src/main.py - Geüpdatet met billing
+# backend/src/main.py - COMPLETE EINDPRODUKT MET ALLE MODULES
 import os
 import logging
 from contextlib import asynccontextmanager
@@ -16,8 +16,10 @@ from core.database import database
 from auth.routes import router as auth_router
 from users.routes import router as users_router
 from projects.routes import router as projects_router
-from billing.routes import router as billing_router  # Nieuwe import
-from billing.webhooks import router as webhook_router  # Nieuwe import
+from billing.routes import router as billing_router
+from billing.webhooks import router as webhook_router
+from api.routes import router as api_router
+from api.gateway import api_gateway_middleware, rate_limiter
 
 # Configure logging
 logging.basicConfig(
@@ -48,6 +50,10 @@ async def lifespan(app: FastAPI):
         
         logger.info("✅ Database connected successfully")
         
+        # Initialize rate limiter
+        await rate_limiter.initialize()
+        logger.info("✅ Rate limiter initialized")
+        
         # Initialize billing service if Stripe is configured
         if settings.STRIPE_SECRET_KEY:
             from billing.service import billing_service
@@ -67,7 +73,7 @@ async def lifespan(app: FastAPI):
 # Create FastAPI app
 app = FastAPI(
     title=settings.APP_NAME,
-    description="SterkBouw SaaS Backend - Construction Project Management & Billing",
+    description="SterkBouw SaaS Backend - Construction Project Management, Billing & AI Integration",
     version=settings.APP_VERSION,
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
     docs_url="/docs",
@@ -75,7 +81,9 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Add middleware
+# Add middleware - API Gateway FIRST
+app.middleware("http")(api_gateway_middleware)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.BACKEND_CORS_ORIGINS,
@@ -91,11 +99,12 @@ app.add_middleware(
 
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
-# Include routers
+# Include all routers
 app.include_router(auth_router, prefix=settings.API_V1_STR)
 app.include_router(users_router, prefix=settings.API_V1_STR)
 app.include_router(projects_router, prefix=settings.API_V1_STR)
-app.include_router(billing_router, prefix=settings.API_V1_STR)  # Nieuwe router toegevoegd
+app.include_router(billing_router, prefix=settings.API_V1_STR)
+app.include_router(api_router, prefix=settings.API_V1_STR)
 app.include_router(webhook_router)  # Webhook routes zonder prefix
 
 
@@ -118,6 +127,7 @@ async def root():
             "users": f"{settings.API_V1_STR}/users",
             "projects": f"{settings.API_V1_STR}/projects",
             "billing": f"{settings.API_V1_STR}/billing",
+            "api": f"{settings.API_V1_STR}/api",
             "webhooks": "/stripe/webhook"
         }
     }
@@ -138,21 +148,43 @@ async def health_check():
             try:
                 import stripe
                 stripe.api_key = settings.STRIPE_SECRET_KEY
-                stripe.Balance.retrieve()  # Simple API call to test connection
+                stripe.Balance.retrieve()
                 stripe_connected = True
             except Exception:
                 stripe_connected = False
         
+        # Check Redis connection for rate limiting
+        redis_connected = False
+        try:
+            if settings.REDIS_URL:
+                import redis.asyncio as redis
+                redis_client = redis.from_url(settings.REDIS_URL)
+                await redis_client.ping()
+                await redis_client.close()
+                redis_connected = True
+        except Exception:
+            redis_connected = False
+        
         services_status = {
             "database": "connected" if db_connected else "disconnected",
+            "redis": "connected" if redis_connected else "disconnected",
+            "stripe": "connected" if stripe_connected else "disconnected",
             "auth": "available",
             "users": "available",
             "projects": "available",
             "billing": "available" if settings.STRIPE_SECRET_KEY else "disabled",
-            "stripe": "connected" if stripe_connected else "disconnected"
+            "api_gateway": "active"
         }
         
-        overall_status = "healthy" if db_connected else "degraded"
+        # Determine overall status
+        if not db_connected:
+            overall_status = "unhealthy"
+        elif settings.STRIPE_SECRET_KEY and not stripe_connected:
+            overall_status = "degraded"
+        elif settings.REDIS_URL and not redis_connected:
+            overall_status = "degraded"
+        else:
+            overall_status = "healthy"
         
         return {
             "status": overall_status,
@@ -185,7 +217,8 @@ async def version():
             {"name": "authentication", "version": "1.0.0"},
             {"name": "user_management", "version": "1.0.0"},
             {"name": "project_management", "version": "1.0.0"},
-            {"name": "billing_payments", "version": "1.0.0"}
+            {"name": "billing_payments", "version": "1.0.0"},
+            {"name": "api_gateway", "version": "1.0.0"}
         ]
     }
 
@@ -211,16 +244,33 @@ async def status():
             except Exception as e:
                 stripe_error = str(e)
         
+        # Get Redis status
+        redis_status = False
+        redis_error = None
+        if settings.REDIS_URL:
+            try:
+                import redis.asyncio as redis
+                redis_client = redis.from_url(settings.REDIS_URL)
+                await redis_client.ping()
+                await redis_client.close()
+                redis_status = True
+            except Exception as e:
+                redis_error = str(e)
+        
         # Get service info
         services = {
             "database": {
                 "status": "online" if db_status else "offline",
                 "connection": "established" if db_status else "failed"
             },
-            "api": {
+            "redis": {
+                "status": "online" if redis_status else ("offline" if settings.REDIS_URL else "disabled"),
+                "error": redis_error,
+                "purpose": "rate_limiting"
+            },
+            "api_gateway": {
                 "status": "online",
-                "uptime": "0s",
-                "requests": 0
+                "features": ["rate_limiting", "request_logging", "analytics", "api_key_management"]
             },
             "authentication": {
                 "status": "online",
@@ -229,19 +279,25 @@ async def status():
             },
             "project_management": {
                 "status": "online",
-                "features": ["projects", "tasks", "documents", "team"]
+                "features": ["projects", "tasks", "documents", "team", "templates"]
             },
             "billing": {
                 "status": "online" if settings.STRIPE_SECRET_KEY else "disabled",
                 "stripe_connected": stripe_status,
                 "stripe_error": stripe_error,
-                "features": ["subscriptions", "invoices", "payments", "webhooks"]
+                "features": ["subscriptions", "invoices", "payments", "webhooks", "plans"]
             }
         }
         
-        overall_status = "operational" if db_status else "degraded"
-        if settings.STRIPE_SECRET_KEY and not stripe_status:
+        # Determine overall status
+        if not db_status:
+            overall_status = "error"
+        elif settings.STRIPE_SECRET_KEY and not stripe_status:
             overall_status = "degraded"
+        elif settings.REDIS_URL and not redis_status:
+            overall_status = "degraded"
+        else:
+            overall_status = "operational"
         
         return {
             "status": overall_status,
@@ -273,11 +329,14 @@ async def config_info():
             "authentication": True,
             "project_management": True,
             "billing": bool(settings.STRIPE_SECRET_KEY),
-            "stripe_webhooks": bool(settings.STRIPE_WEBHOOK_SECRET)
+            "stripe_webhooks": bool(settings.STRIPE_WEBHOOK_SECRET),
+            "rate_limiting": bool(settings.REDIS_URL),
+            "api_key_management": True
         },
         "limits": {
             "rate_limit_per_minute": settings.RATE_LIMIT_PER_MINUTE,
-            "access_token_expire_minutes": settings.ACCESS_TOKEN_EXPIRE_MINUTES
+            "access_token_expire_minutes": settings.ACCESS_TOKEN_EXPIRE_MINUTES,
+            "refresh_token_expire_days": settings.REFRESH_TOKEN_EXPIRE_DAYS
         }
     }
 
@@ -293,7 +352,8 @@ async def global_exception_handler(request: Request, exc: Exception):
             "message": str(exc),
             "path": request.url.path,
             "method": request.method,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
+            "request_id": request.headers.get("X-Request-ID", "unknown")
         }
     )
 
