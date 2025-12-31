@@ -1,0 +1,61 @@
+{
+"version": "1.0.0-immutable",
+"checksum": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+"commands": {
+"system_recovery": {
+"id": "SYS_REC_001",
+"action": "emergency_recovery",
+"permanent": true,
+"description": "Volledig systeem herstel bij crash"
+},
+"command_restore": {
+"id": "CMD_RST_001",
+"action": "restore_command_registry",
+"permanent": true,
+"description": "Herstel alle commando's vanuit backup"
+},
+"route_rebuild": {
+"id": "RTE_RBL_001",
+"action": "rebuild_routes",
+"permanent": true,
+"description": "Herbouw alle routes vanuit manifest"
+},
+"module_isolate": {
+"id": "MOD_ISO_001",
+"action": "create_isolated_module",
+"permanent": true,
+"description": "Creëer nieuwe module zonder bestaande aan te raken"
+},
+"github_fallback": {
+"id": "GIT_FBK_001",
+"action": "deploy_to_github",
+"permanent": true,
+"description": "Deploy naar GitHub Pages als Railway offline is"
+},
+"bulk_import": {
+"id": "BLK_IMP_001",
+"action": "autonomous_bulk_import",
+"permanent": true,
+"description": "Importeer bulk data volledig zelfstandig"
+},
+"menu_auto_update": {
+"id": "MNU_UPD_001",
+"action": "auto_update_menu",
+"permanent": true,
+"description": "Update menu zonder origineel te wijzigen"
+},
+"health_check": {
+"id": "HLT_CHK_001",
+"action": "system_health_check",
+"permanent": true,
+"description": "Uitgebreide systeem gezondheidscheck"
+}
+},
+"emergency": {
+"railway_offline": "github_fallback",
+"system_crash": "system_recovery",
+"commands_lost": "command_restore",
+"routes_broken": "route_rebuild"
+}
+}
+
