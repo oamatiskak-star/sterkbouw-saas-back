@@ -1,0 +1,78 @@
+{
+"version": "1.0.0",
+"created": "2024-01-01T00:00:00.000Z",
+"lastUpdated": "2024-01-01T00:00:00.000Z",
+"routes": {
+"health": {
+"path": "/api/health",
+"method": "GET",
+"file": "./routes/health.js",
+"immutable": false,
+"description": "System health check endpoint"
+},
+"commands": {
+"path": "/api/commands",
+"method": "GET",
+"file": "./routes/commands.js",
+"immutable": false,
+"description": "Command registry management"
+},
+"commands_execute": {
+"path": "/api/commands/execute",
+"method": "POST",
+"file": "./routes/commands.js",
+"immutable": false,
+"description": "Execute commands"
+},
+"recovery": {
+"path": "/api/recovery",
+"method": "POST",
+"file": "./routes/recovery.js",
+"immutable": true,
+"description": "Emergency recovery operations"
+},
+"routes_status": {
+"path": "/api/routes/status",
+"method": "GET",
+"file": "./routes/auto-healing-router.js",
+"immutable": false,
+"description": "Route health monitoring"
+},
+"routes_repair": {
+"path": "/api/routes/repair",
+"method": "POST",
+"file": "./routes/auto-healing-router.js",
+"immutable": false,
+"description": "Manual route repair"
+},
+"modules": {
+"path": "/api/modules",
+"method": "GET",
+"file": "./routes/modules.js",
+"immutable": false,
+"description": "Module management"
+},
+"modules_create": {
+"path": "/api/modules/create",
+"method": "POST",
+"file": "./routes/modules.js",
+"immutable": false,
+"description": "Create isolated modules"
+},
+"backup": {
+"path": "/api/backup",
+"method": "GET",
+"file": "./routes/backup.js",
+"immutable": false,
+"description": "Backup management"
+},
+"backup_restore": {
+"path": "/api/backup/restore",
+"method": "POST",
+"file": "./routes/backup.js",
+"immutable": false,
+"description": "Restore from backup"
+}
+},
+"checksum": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+}
