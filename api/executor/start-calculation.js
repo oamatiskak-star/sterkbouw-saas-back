@@ -2,6 +2,7 @@ import { Router } from "express";
 import { createClient } from "@supabase/supabase-js";
 
 const router = Router();
+const EXECUTOR_STATE_ID = "00000000-0000-0000-0000-000000000001";
 
 // Initialize Supabase client with service role key
 const supabase = createClient(
@@ -28,6 +29,19 @@ router.post("/", async (req, res) => {
       "generating_stabu",
       "scan_completed",
     ];
+
+    const { error: stateError } = await supabase
+      .from("executor_state")
+      .upsert({
+        id: EXECUTOR_STATE_ID,
+        allowed: true,
+        updated_at: new Date().toISOString()
+      }, { onConflict: "id" });
+
+    if (stateError) {
+      console.error("START_CALCULATION_API: executor_state update failed", stateError);
+      return res.status(500).json({ error: stateError.message });
+    }
 
     const { data: existingRun, error: existingRunError } = await supabase
       .from("calculation_runs")
