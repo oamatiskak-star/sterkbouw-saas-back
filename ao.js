@@ -21,6 +21,7 @@ import pdfRoutes from "./routes/pdfRoutes.js"
 import projectenRouter from "./api/projecten.js"
 import generateCalculatieRouter from "./api/generate-calculatie.js"
 import uploadTaskRouter from "./api/executor/upload-task.js"
+import startCalculationRouter from "./api/executor/start-calculation.js"
 
 // ===============================
 // BIM API ROUTES - NIEUW
@@ -139,6 +140,7 @@ app.use(pdfRoutes)
 app.use("/api/projecten", projectenRouter)
 app.use("/api/generate-calculatie", generateCalculatieRouter)
 app.use("/api/executor/upload-task", uploadTaskRouter)
+app.use("/api/executor/start-calculation", startCalculationRouter)
 
 // Health check voor calculatie API
 app.get("/api/calculatie/health", (req, res) => {
