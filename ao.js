@@ -24,6 +24,17 @@ import uploadTaskRouter from "./api/executor/upload-task.js"
 import startCalculationRouter from "./api/executor/start-calculation.js"
 import projectScanRouter from "./api/executor/project-scan.js"
 import workflowRunRouter from "./api/workflow/run.js"
+import customerCreateRouter from "./api/customer/create.js"
+import projectCreateRouter from "./api/project/create.js"
+import projectSettingsRouter from "./api/project/settings.js"
+import analysisStartRouter from "./api/analysis/start.js"
+import stabuConfirmRouter from "./api/stabu/confirm.js"
+import calculationRunRouter from "./api/calculation/run.js"
+import calculationFixedPriceRouter from "./api/calculation/fixed-price.js"
+import calculationSplitRouter from "./api/calculation/split.js"
+import offerGenerateRouter from "./api/offer/generate.js"
+import riskAnalyseRouter from "./api/risk/analyse.js"
+import planningGenerateRouter from "./api/planning/generate.js"
 
 // ===============================
 // BIM API ROUTES - NIEUW
@@ -145,6 +156,17 @@ app.use("/api/executor/upload-task", uploadTaskRouter)
 app.use("/api/executor/start-calculation", startCalculationRouter)
 app.use("/api/executor/project-scan", projectScanRouter)
 app.use("/api/workflow/run", workflowRunRouter)
+app.use("/api/customer/create", customerCreateRouter)
+app.use("/api/project/create", projectCreateRouter)
+app.use("/api/project/settings", projectSettingsRouter)
+app.use("/api/analysis/start", analysisStartRouter)
+app.use("/api/stabu/confirm", stabuConfirmRouter)
+app.use("/api/calculation/run", calculationRunRouter)
+app.use("/api/calculation/fixed-price", calculationFixedPriceRouter)
+app.use("/api/calculation/split", calculationSplitRouter)
+app.use("/api/offer/generate", offerGenerateRouter)
+app.use("/api/risk/analyse", riskAnalyseRouter)
+app.use("/api/planning/generate", planningGenerateRouter)
 
 // Health check voor calculatie API
 app.get("/api/calculatie/health", (req, res) => {
