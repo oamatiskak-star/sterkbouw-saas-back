@@ -4,11 +4,37 @@ dotenv.config()
 
 const token = process.env.TELEGRAM_BOT_TOKEN
 const chatId = process.env.TELEGRAM_CHAT_ID
+let authWarningShown = false
 
 export async function sendTelegram(message) {
+  if (!token || !chatId) {
+    if (!authWarningShown) {
+      console.warn("[TELEGRAM] Token of chatId ontbreekt; bericht wordt niet verstuurd.")
+      authWarningShown = true
+    }
+    return
+  }
   const url = `https://api.telegram.org/bot${token}/sendMessage`
-  await axios.post(url, {
-    chat_id: chatId,
-    text: message
-  })
+
+  try {
+    await axios.post(
+      url,
+      {
+        chat_id: chatId,
+        text: message
+      },
+      { timeout: 5000 }
+    )
+  } catch (error) {
+    const status = error.response?.status
+    const description = error.response?.data?.description || error.message
+
+    if (status === 401 && !authWarningShown) {
+      console.warn("[TELEGRAM] Autorisatie gefaald (401). Controleer TELEGRAM_BOT_TOKEN en TELEGRAM_CHAT_ID.")
+      authWarningShown = true
+    } else {
+      console.warn(`[TELEGRAM] Fout bij verzenden: ${description}`)
+    }
+    // Swallow the error to avoid crashing the app on notification failures
+  }
 }
