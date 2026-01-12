@@ -18,7 +18,7 @@ import pdfRoutes from "./routes/pdfRoutes.js"
 // CALCULATIE API ROUTES
 // ===============================
 
-import projectenRouter from "./api/projecten.js"
+import projectenRouter from "./api/projects.js"
 import generateCalculatieRouter from "./api/generate-calculatie.js"
 import uploadTaskRouter from "./api/executor/upload-task.js"
 import startCalculationRouter from "./api/executor/start-calculation.js"
