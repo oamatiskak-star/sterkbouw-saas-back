@@ -5,10 +5,10 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
-COPY package.json ./
+COPY sterkbouw-saas-back/package.json ./
 RUN npm install --omit=dev
 
-COPY . ./
+COPY sterkbouw-saas-back/ ./
 
 EXPOSE 10000
 
