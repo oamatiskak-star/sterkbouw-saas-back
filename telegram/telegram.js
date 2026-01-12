@@ -5,8 +5,11 @@ dotenv.config()
 const token = process.env.TELEGRAM_BOT_TOKEN
 const chatId = process.env.TELEGRAM_CHAT_ID
 let authWarningShown = false
+let authDisabled = false
 
 export async function sendTelegram(message) {
+  if (authDisabled) return
+
   if (!token || !chatId) {
     if (!authWarningShown) {
       console.warn("[TELEGRAM] Token of chatId ontbreekt; bericht wordt niet verstuurd.")
@@ -32,6 +35,7 @@ export async function sendTelegram(message) {
     if (status === 401 && !authWarningShown) {
       console.warn("[TELEGRAM] Autorisatie gefaald (401). Controleer TELEGRAM_BOT_TOKEN en TELEGRAM_CHAT_ID.")
       authWarningShown = true
+      authDisabled = true
     } else {
       console.warn(`[TELEGRAM] Fout bij verzenden: ${description}`)
     }
