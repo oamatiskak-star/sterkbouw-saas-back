@@ -1,7 +1,7 @@
 // /api/generate-calculatie.js
 import express from 'express'
-import { supabase } from '@/lib/supabase'
-import { generateCalculatiePDF } from '@/lib/pdf-generator'
+import { supabase } from '../lib/supabase.js'
+import { generateCalculatiePDF } from '../lib/pdf-generator.js'
 
 const router = express.Router()
 
